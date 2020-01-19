@@ -31,15 +31,21 @@ my ($tree, $p);
 my %abfuhr;
 
 
-GetOptions ('haushalt:s' => \$opt_haushalt, 'gebiet:i' => \$opt_gebiet);
+my $opt_gemeinde = 31947;
+my $opt_jahr = strftime("%Y", gmtime);
+
+GetOptions ('haushalt:s' => \$opt_haushalt, 
+            'gebiet:i' => \$opt_gebiet,
+            'gemeinde:i' => \$opt_gemeinde,
+            'jahr:i' => \$opt_jahr,
+);
 
 print "$opt_haushalt $opt_gebiet\n" if $DEBUG;
 
 
 my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
-#$url = "http://stpoeltenland.abfallverband.at/?gem_nr=31947&jahr=2019&portal=verband&vb=pl&kat=32";
-$url = "http://stpoeltenland.abfallverband.at/?gem_nr=31947&jahr=2020&portal=verband&vb=pl&kat=32";
+$url = "http://stpoeltenland.abfallverband.at/?gem_nr=$opt_gemeinde&jahr=$opt_jahr&portal=verband&vb=pl&kat=32";
 
 print "$url\n" if $DEBUG;
 
