@@ -63,11 +63,12 @@ foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
   print "$paragraph\n" if $DEBUG;
   if ($paragraph =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
     $abfuhrdate = "$3$2$1";
-    $abfuhrtimeend = timelocal(0, 0, 0, $1, $2-1, $3) + 24 * 60 * 60;
+    $abfuhrtimeend = timelocal(0, 0, 0, $1, $2 - 1, $3) + 24 * 60 * 60;
     $abfuhrdateend = sprintf("%04d%02d%02d", localtime($abfuhrtimeend)->year() + 1900, localtime($abfuhrtimeend)->mon() + 1, localtime($abfuhrtimeend)->mday);
     $abfuhrtype = "$4";
     print "$abfuhrdate $abfuhrdateend $abfuhrtype" if $DEBUG;
     $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"st"} = 1;
+    $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"end"} = $abfuhrdateend;
   }
   if ($paragraph =~ /Entsorgungsgebiet (\d)/) {
     print " $1" if $DEBUG;
@@ -107,7 +108,7 @@ foreach my $abfuhrdate (sort keys %abfuhr) {
       print "DTSTAMP:$timestamp\r\n";
       #print "$abfuhrdate $abfuhrtype";
       print "DTSTART;VALUE=DATE:$abfuhrdate\r\n";
-      print "DTEND;VALUE=DATE:$abfuhrdateend\r\n";
+      print "DTEND;VALUE=DATE:$hashabfuhr->{'end'}\r\n";
       print "SUMMARY:$abfuhrtype";
       if (defined($hashabfuhr->{'eg'}) && !defined($opt_gebiet)) {
         $hashabfuhr->{'eg'} = join '',sort split('',$hashabfuhr->{'eg'});
