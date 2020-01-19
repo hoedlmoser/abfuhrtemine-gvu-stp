@@ -21,11 +21,12 @@ use Time::localtime;
 
 
 my $opt_jahr = strftime("%Y", gmtime);
-my ($opt_gemeinde, $opt_gemid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_debug);
+my ($opt_gemeinde, $opt_gemid, $opt_verbandid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_debug);
 GetOptions ('haushalt:s' => \$opt_haushalt, 
             'gebiet:i' => \$opt_gebiet,
             'gemeinde:s' => \$opt_gemeinde,
             'gemeindeid:i' => \$opt_gemid,
+            'verbandid:s' => \$opt_verbandid,
             'jahr:i' => \$opt_jahr,
             'liste' => \$opt_liste,
             'debug' => \$opt_debug,
@@ -37,42 +38,65 @@ my %umlaute = ("ä" => "ae", "Ä" => "Ae", "ü" => "ue", "Ü" => "Ue", "ö" => "
 my $umlautkeys = join ("|", keys(%umlaute));
 
 
+my %verbaende = (
+  'St. Pölten Bezirk' => 'pl',
+  'Tulln' => 'tu',
+);
+my %verbandHost = (
+  'pl' => 'stpoeltenland',
+  'tu' => 'tulln',
+);
 
-my $url = "http://stpoeltenland.abfallverband.at/?portal=verband&vb=pl&kat=32";
-print "$url\n" if $opt_debug;
 
-my $tree = HTML::TreeBuilder->new_from_url($url);
 
-foreach my $p ($tree->look_down(_tag => "option"))
-{
-  my $gemeinde = $p->as_text;
-  my $gemid = $p->attr('value');
-
-  next if $gemeinde =~ /alle Gemeinden/;
-  print "$gemeinde $gemid\n" if $opt_debug;
-  $gemeinde =~ s/($umlautkeys)/$umlaute{$1}/g;  
-  print "$gemeinde $gemid\n" if $opt_debug;
-
-  if (defined($opt_liste)) {
-    print "$gemeinde, $gemid\n";
-  } elsif ((defined($opt_gemid) && $opt_gemid == $gemid) || (defined($opt_gemeinde) && $opt_gemeinde eq $gemeinde) || (!defined($opt_gemid) && !defined($opt_gemeinde))) {
-    printiCal($gemid, $gemeinde, $opt_jahr);
+for my $verbandLong ( sort keys %verbaende ) {
+  my $verbandShort = $verbaende{$verbandLong};
+  print "$verbandLong, $verbandShort\n" if $opt_debug;
+  if ((defined($opt_verbandid) && lc $opt_verbandid eq $verbandShort) || !defined($opt_verbandid)) {
+    print "$verbandLong, \U$verbandShort\n" if $opt_liste;
+    getGemeinde($verbandShort);
   }
-
 }
 
-$tree->delete;
+
+
+sub getGemeinde {
+  my ($vbid) = @_;
+
+  my $url = "http://$verbandHost{$vbid}.umweltverbaende.at/?portal=verband&vb=$vbid&kat=32";
+  print "$url\n" if $opt_debug;
+
+  my $tree = HTML::TreeBuilder->new_from_url($url);
+
+  foreach my $p ($tree->look_down(_tag => "option"))
+  {
+    my $gemeinde = $p->as_text;
+    my $gemid = $p->attr('value');
+
+    next if $gemeinde =~ /alle Gemeinden/;
+    print "$gemeinde $gemid\n" if $opt_debug;
+    $gemeinde =~ s/($umlautkeys)/$umlaute{$1}/g;  
+    print "$gemeinde $gemid\n" if $opt_debug;
+
+    if (defined($opt_liste)) {
+      print "  $gemeinde, $gemid\n";
+    } elsif ((defined($opt_gemid) && $opt_gemid == $gemid) || (defined($opt_gemeinde) && $opt_gemeinde eq $gemeinde) || (!defined($opt_gemid) && !defined($opt_gemeinde))) {
+      printiCal($vbid, $gemid, $gemeinde, $opt_jahr);
+    }
+  }
+  $tree->delete;
+}
 
 
 
 sub printiCal {
-  my ($gemid, $gemeinde, $jahr) = @_;
+  my ($vbid, $gemid, $gemeinde, $jahr) = @_;
   
   print "$gemeinde";
 
   my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
-  my $url = "http://stpoeltenland.abfallverband.at/?gem_nr=$gemid&jahr=$jahr&portal=verband&vb=pl&kat=32";
+  my $url = "http://$verbandHost{$vbid}.umweltverbaende.at/?gem_nr=$gemid&jahr=$jahr&portal=verband&vb=$vbid&kat=32";
   print "$url\n" if $opt_debug;
 
   my $tree = HTML::TreeBuilder->new_from_url($url);
@@ -84,6 +108,7 @@ sub printiCal {
     my ($abfuhrdate, $abfuhrtype);
     my $abfuhrinfo = $p->as_text;
     print "$abfuhrinfo\n" if $opt_debug;
+    next if $abfuhrinfo =~ m/Wohnhausanlagen/;
     if ($abfuhrinfo =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
       $abfuhrdate = "$3$2$1";
       my $abfuhrtimeend = timelocal(0, 0, 0, $1, $2 - 1, $3) + 24 * 60 * 60;
@@ -93,10 +118,10 @@ sub printiCal {
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"st"} = 1;
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"end"} = $abfuhrdateend;
     }
-    if ($abfuhrinfo =~ /Entsorgungsgebiet (\d)/) {
-      print "$1" if $opt_debug;
-      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$1/)) {
-        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$1";
+    if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte) (\d)/) {
+      print "$2" if $opt_debug;
+      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$2/)) {
+        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$2";
       }
     }
     if ($abfuhrinfo =~ /(Mehr|Ein)personenhaushalt/) {
