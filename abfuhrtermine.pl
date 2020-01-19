@@ -33,7 +33,7 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
 print "$opt_jahr $opt_gemid $opt_gemeinde $opt_gebiet $opt_haushalt\n" if $opt_debug;
 
 
-my %umlaute = ("ä" => "ae", "Ä" => "Ae", "ü" => "ue", "Ü" => "Ue", "ö" => "oe", "Ö" => "Oe", "ß" => "ss", " " => "-" );
+my %umlaute = ("ä" => "ae", "Ä" => "Ae", "ü" => "ue", "Ü" => "Ue", "ö" => "oe", "Ö" => "Oe", "ß" => "ss" );
 my $umlautkeys = join ("|", keys(%umlaute));
 
 
@@ -112,6 +112,7 @@ sub printiCal {
   $tree->delete;
 
 
+  $gemeinde =~ tr/ \./-/d;  
   my $iCalFile = "abfuhrtermine_${gemeinde}_${gemid}_${jahr}.ics";
   print "$iCalFile\n" if $opt_debug;
   print " -> $iCalFile\n";
