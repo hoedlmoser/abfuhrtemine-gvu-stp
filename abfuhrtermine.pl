@@ -18,6 +18,8 @@ use POSIX qw(strftime);
 use Data::Dumper;
 use Getopt::Long;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
+use Time::Local;
+use Time::localtime;
 
 # http://www.perlmonks.org/?node_id=1036317
 #no warnings 'experimental::smartmatch';
@@ -29,7 +31,7 @@ my $DEBUG;
 
 
 my ($opt_haushalt, $opt_gebiet);
-my ($url, $paragraph, $abfuhrdate, $abfuhrtype, $abfuhrhaushalt);
+my ($url, $paragraph, $abfuhrdate, $abfuhrtype, $abfuhrhaushalt, $abfuhrtimeend, $abfuhrdateend);
 my ($tree, $p);
 my %abfuhr;
 
@@ -61,8 +63,10 @@ foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
   print "$paragraph\n" if $DEBUG;
   if ($paragraph =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
     $abfuhrdate = "$3$2$1";
+    $abfuhrtimeend = timelocal(0, 0, 0, $1, $2-1, $3) + 24 * 60 * 60;
+    $abfuhrdateend = sprintf("%04d%02d%02d", localtime($abfuhrtimeend)->year() + 1900, localtime($abfuhrtimeend)->mon() + 1, localtime($abfuhrtimeend)->mday);
     $abfuhrtype = "$4";
-    print "$abfuhrdate $abfuhrtype" if $DEBUG;
+    print "$abfuhrdate $abfuhrdateend $abfuhrtype" if $DEBUG;
     $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"st"} = 1;
   }
   if ($paragraph =~ /Entsorgungsgebiet (\d)/) {
@@ -103,6 +107,7 @@ foreach my $abfuhrdate (sort keys %abfuhr) {
       print "DTSTAMP:$timestamp\r\n";
       #print "$abfuhrdate $abfuhrtype";
       print "DTSTART;VALUE=DATE:$abfuhrdate\r\n";
+      print "DTEND;VALUE=DATE:$abfuhrdateend\r\n";
       print "SUMMARY:$abfuhrtype";
       if (defined($hashabfuhr->{'eg'}) && !defined($opt_gebiet)) {
         $hashabfuhr->{'eg'} = join '',sort split('',$hashabfuhr->{'eg'});
@@ -117,6 +122,7 @@ foreach my $abfuhrdate (sort keys %abfuhr) {
         }
       }
       print "\r\n";
+      print "STATUS:CONFIRMED\r\n";
       print "END:VEVENT\r\n";
 
     }
