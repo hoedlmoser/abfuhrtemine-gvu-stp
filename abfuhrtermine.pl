@@ -29,6 +29,8 @@ my ($url, $paragraph, $abfuhrdate, $abfuhrtype, $abfuhrhaushalt, $abfuhrtimeend,
 my ($tree, $p);
 my %abfuhr;
 
+my %umlaute = ("ä" => "ae", "Ä" => "Ae", "ü" => "ue", "Ü" => "Ue", "ö" => "oe", "Ö" => "Oe", "ß" => "ss", " " => "_" );
+my $umlautkeys = join ("|", keys(%umlaute));
 
 my $opt_gemeinde = 31947;
 my $opt_jahr = strftime("%Y", gmtime);
@@ -43,6 +45,29 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
 print "$opt_jahr $opt_gemeinde $opt_gebiet $opt_haushalt\n" if $DEBUG;
 
 
+
+$url = "http://stpoeltenland.abfallverband.at/?portal=verband&vb=pl&kat=32";
+
+print "$url\n" if $DEBUG;
+
+$tree = HTML::TreeBuilder->new_from_url($url);
+
+#print "$tree\n" if $DEBUG;
+#print Dumper($tree) if $DEBUG;
+
+foreach my $p ($tree->look_down(_tag => "option"))
+{
+  my $paragraph = $p->as_text;
+  my $gemid = $p->attr('value');
+
+  next if $paragraph =~ /alle Gemeinden/;
+  print "$paragraph  $gemid\n" if $DEBUG;
+  $paragraph =~ s/($umlautkeys)/$umlaute{$1}/g;  
+  print "$paragraph  $gemid\n" if $DEBUG;
+}
+
+
+
 my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
 $url = "http://stpoeltenland.abfallverband.at/?gem_nr=$opt_gemeinde&jahr=$opt_jahr&portal=verband&vb=pl&kat=32";
@@ -51,12 +76,11 @@ print "$url\n" if $DEBUG;
 
 $tree = HTML::TreeBuilder->new_from_url($url);
 
-print "$tree\n" if $DEBUG;
-print Dumper($tree) if $DEBUG;
+#print "$tree\n" if $DEBUG;
+#print Dumper($tree) if $DEBUG;
 
 foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
 {
-  print "$p\n" if $DEBUG;
   my $paragraph = $p->as_text;
   print "$paragraph\n" if $DEBUG;
   if ($paragraph =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
@@ -64,18 +88,18 @@ foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
     $abfuhrtimeend = timelocal(0, 0, 0, $1, $2 - 1, $3) + 24 * 60 * 60;
     $abfuhrdateend = sprintf("%04d%02d%02d", localtime($abfuhrtimeend)->year() + 1900, localtime($abfuhrtimeend)->mon() + 1, localtime($abfuhrtimeend)->mday);
     $abfuhrtype = "$4";
-    print "$abfuhrdate $abfuhrdateend $abfuhrtype" if $DEBUG;
+    print "   -> $abfuhrdate $abfuhrdateend $abfuhrtype " if $DEBUG;
     $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"st"} = 1;
     $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"end"} = $abfuhrdateend;
   }
   if ($paragraph =~ /Entsorgungsgebiet (\d)/) {
-    print " $1" if $DEBUG;
+    print "$1" if $DEBUG;
     if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$1/)) {
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$1";
     }
   }
   if ($paragraph =~ /(Mehr|Ein)personenhaushalt/) {
-    print " $1" if $DEBUG;
+    print "$1" if $DEBUG;
     $abfuhrhaushalt = lc substr $1, 0, 1;
     if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$abfuhrhaushalt/)) {
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} .= $abfuhrhaushalt;
@@ -85,7 +109,7 @@ foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
 
 }
 
-print Dumper(%abfuhr) if $DEBUG;
+#print Dumper(%abfuhr) if $DEBUG;
 
 
 
