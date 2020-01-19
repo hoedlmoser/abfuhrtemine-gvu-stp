@@ -107,6 +107,7 @@ sub printiCal {
   my $tree = HTML::TreeBuilder->new_from_url($url);
 
   my %abfuhr;
+  my $maxeg = 0;
 
   open(my $fhRaw, '>:encoding(UTF-8)', $iCalFile . '.out') if $opt_raw or die "could not open file '$iCalFile.out' $!";
 
@@ -127,17 +128,30 @@ sub printiCal {
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"end"} = $abfuhrdateend;
     }
     if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte) (\d)/) {
-      print "$2" if $opt_debug;
-      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$2/)) {
-        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$2";
+      my $eg = $2;
+      print "$eg-" if $opt_debug;
+      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$eg/)) {
+        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$eg";
       }
+      $maxeg = $eg if ($eg > $maxeg);
+      print "$eg " if $opt_debug;
+    }
+    if ($abfuhrinfo =~ /Abfuhrgebiet (I*)/) {
+      print "$1-" if $opt_debug;
+      my $ag = length($1);
+      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$ag/)) {
+        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$ag";
+      }
+      $maxeg = $ag if ($ag > $maxeg);
+      print "$ag " if $opt_debug;
     }
     if ($abfuhrinfo =~ /(Mehr|Ein)personenhaushalt/) {
-      print "$1" if $opt_debug;
+      print "$1-" if $opt_debug;
       my $abfuhrhaushalt = lc substr $1, 0, 1;
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$abfuhrhaushalt/)) {
         $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} .= $abfuhrhaushalt;
       }
+      print "$abfuhrhaushalt " if $opt_debug;
     }
     print "\n" if $opt_debug;
   }
@@ -166,8 +180,8 @@ sub printiCal {
         print $fh "SUMMARY:$abfuhrtype";
         if (defined($hashabfuhr->{'eg'}) && !defined($opt_gebiet)) {
           $hashabfuhr->{'eg'} = join '',sort split('',$hashabfuhr->{'eg'});
-          if ($hashabfuhr->{'eg'} ne "12") {
-            print $fh " $hashabfuhr->{'eg'}";
+          if ($hashabfuhr->{'eg'} ne join '', (1 .. $maxeg)) {
+            print $fh ' ' . join ' ', split('',$hashabfuhr->{'eg'});
           }
         }
         if (defined($hashabfuhr->{'ph'}) && !defined($opt_haushalt)) {
