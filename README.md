@@ -1,5 +1,9 @@
 # abfuhrtemine-gvu-stp
-exportiere die abfuhrtermine des GVU St. Pölten als iCalendar datei
+exportiere die abfuhrtermine der NÖ Umweltverbände als iCalendar datei.
+
+derzeit sind unterstützt:
+- GVU St. Pölten Bezirk
+- GVA Tulln
 
 fertige exporte gibts im verzeichnis `abfuhrtermine`.
 
@@ -7,7 +11,8 @@ fertige exporte gibts im verzeichnis `abfuhrtermine`.
 
 ```
   --list                     zeige alle gemeinden
-                             exportiere nur für ...
+                             exportiere bzw zeige nur für ...
+  --verbandid <verbandID>    ... einen bestimmten verband
   --gemeinde <gemeindename>  ... eine bestimmte gemeinde
   --gemeindeid <gemeindeID>  ... eine bestimmte gemeindeID
   --haushalt <e|m>           ... einen bestimmtem haushaltstyp
