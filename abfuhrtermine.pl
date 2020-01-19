@@ -40,7 +40,7 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
             'debug' => \$DEBUG,
 );
 
-print "$opt_haushalt $opt_gebiet\n" if $DEBUG;
+print "$opt_jahr $opt_gemeinde $opt_gebiet $opt_haushalt\n" if $DEBUG;
 
 
 my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
