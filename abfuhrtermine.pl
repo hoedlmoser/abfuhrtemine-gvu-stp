@@ -1,28 +1,23 @@
 #!/usr/bin/perl
 #
-# abfuhrtermin - fetch abfuhrtermine from GVU St. Pölten and provide as ics.
+# abfuhrtermine-gvu-stp - fetch abfuhrtermine from GVU St. Pölten and provide as iCalendar.
 #
-# initially
-# by Klaus Maria Pfeiffer 2016-06 kmp@kmp.or.at
+# Klaus Maria Pfeiffer 2016 - 2019
+# https://github.com/hoedlmoser/abfuhrtemine-gvu-stp
 #
 
 
 use strict;
 use warnings;
-#use feature "switch";
 use utf8;
 
 use HTML::TreeBuilder;
 use POSIX qw(strftime);
-#use DBI();
 use Data::Dumper;
 use Getopt::Long;
 use Digest::MD5 qw(md5 md5_hex md5_base64);
 use Time::Local;
 use Time::localtime;
-
-# http://www.perlmonks.org/?node_id=1036317
-#no warnings 'experimental::smartmatch';
 
 binmode(STDOUT, ":utf8");
 
@@ -36,7 +31,6 @@ my ($tree, $p);
 my %abfuhr;
 
 
-
 GetOptions ('haushalt:s' => \$opt_haushalt, 'gebiet:i' => \$opt_gebiet);
 
 print "$opt_haushalt $opt_gebiet\n" if $DEBUG;
@@ -44,8 +38,6 @@ print "$opt_haushalt $opt_gebiet\n" if $DEBUG;
 
 my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
-#$url = "http://www.umweltverbaende.at/?gem_nr=31947&jahr=2017&kat=5039&portal=verband&vb=pl";
-#$url = "http://stpoeltenland.abfallverband.at/?gem_nr=31947&jahr=2018&kat=5039&portal=verband&vb=pl";
 #$url = "http://stpoeltenland.abfallverband.at/?gem_nr=31947&jahr=2019&portal=verband&vb=pl&kat=32";
 $url = "http://stpoeltenland.abfallverband.at/?gem_nr=31947&jahr=2020&portal=verband&vb=pl&kat=32";
 
@@ -97,16 +89,13 @@ print "BEGIN:VCALENDAR\r\n";
 print "VERSION:2.0\r\n";
 print "PRODID:-//kmp.or.at//NONSGML abfuhrtermine v0.1//EN\r\n";
 
-#while ( my ($abfuhrdate, $hashabfuhrtype) = each(%abfuhr) ) {
 foreach my $abfuhrdate (sort keys %abfuhr) {
   my $hashabfuhrtype = $abfuhr{$abfuhrdate};
   while ( my ($abfuhrtype, $hashabfuhr) = each(%$hashabfuhrtype) ) {
     if (((!defined($hashabfuhr->{'eg'})) || (!defined($opt_gebiet)) || ($hashabfuhr->{'eg'} =~ $opt_gebiet)) && ((!defined($hashabfuhr->{'ph'})) || (!defined($opt_haushalt)) || ($hashabfuhr->{'ph'} =~ $opt_haushalt))) {
-
       print "BEGIN:VEVENT\r\n";
       print "UID:" . md5_hex($abfuhrdate . $abfuhrtype) . "\@abfuhrtermine.kmp.or.at\r\n";
       print "DTSTAMP:$timestamp\r\n";
-      #print "$abfuhrdate $abfuhrtype";
       print "DTSTART;VALUE=DATE:$abfuhrdate\r\n";
       print "DTEND;VALUE=DATE:$hashabfuhr->{'end'}\r\n";
       print "SUMMARY:$abfuhrtype";
@@ -125,7 +114,6 @@ foreach my $abfuhrdate (sort keys %abfuhr) {
       print "\r\n";
       print "STATUS:CONFIRMED\r\n";
       print "END:VEVENT\r\n";
-
     }
   }
 }
