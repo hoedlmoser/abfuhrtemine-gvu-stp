@@ -21,7 +21,7 @@ use Time::localtime;
 
 
 my $opt_jahr = strftime("%Y", gmtime);
-my ($opt_gemeinde, $opt_gemid, $opt_verbandid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_debug);
+my ($opt_gemeinde, $opt_gemid, $opt_verbandid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_raw, $opt_debug);
 GetOptions ('haushalt:s' => \$opt_haushalt, 
             'gebiet:i' => \$opt_gebiet,
             'gemeinde:s' => \$opt_gemeinde,
@@ -29,6 +29,7 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
             'verbandid:s' => \$opt_verbandid,
             'jahr:i' => \$opt_jahr,
             'liste' => \$opt_liste,
+            'raw' => \$opt_raw,
             'debug' => \$opt_debug,
 );
 print "$opt_jahr $opt_gemid $opt_gemeinde $opt_gebiet $opt_haushalt\n" if $opt_debug;
@@ -94,6 +95,10 @@ sub printiCal {
   
   print "$gemeinde";
 
+  $gemeinde =~ tr/ \./-/d;  
+  my $iCalFile = "abfuhrtermine_${gemeinde}_${gemid}_${jahr}";
+  print "$iCalFile\n" if $opt_debug;
+
   my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
   my $url = "http://$verbandHost{$vbid}.umweltverbaende.at/?gem_nr=$gemid&jahr=$jahr&portal=verband&vb=$vbid&kat=32";
@@ -103,11 +108,14 @@ sub printiCal {
 
   my %abfuhr;
 
+  open(my $fhRaw, '>:encoding(UTF-8)', $iCalFile . '.out') if $opt_raw or die "could not open file '$iCalFile.out' $!";
+
   foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
   {
     my ($abfuhrdate, $abfuhrtype);
     my $abfuhrinfo = $p->as_text;
     print "$abfuhrinfo\n" if $opt_debug;
+    print $fhRaw "$abfuhrinfo\n" if $opt_raw;
     next if $abfuhrinfo =~ m/Wohnhausanlagen/;
     if ($abfuhrinfo =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
       $abfuhrdate = "$3$2$1";
@@ -134,15 +142,13 @@ sub printiCal {
     print "\n" if $opt_debug;
   }
 
+  close $fhRaw if $opt_raw;
+
   $tree->delete;
 
+  print " -> $iCalFile.ics\n";
 
-  $gemeinde =~ tr/ \./-/d;  
-  my $iCalFile = "abfuhrtermine_${gemeinde}_${gemid}_${jahr}.ics";
-  print "$iCalFile\n" if $opt_debug;
-  print " -> $iCalFile\n";
-
-  open(my $fh, '>:encoding(UTF-8)', $iCalFile) or die "could not open file '$iCalFile' $!";
+  open(my $fh, '>:encoding(UTF-8)', $iCalFile . '.ics') or die "could not open file '$iCalFile.ics' $!";
     
   print $fh "BEGIN:VCALENDAR\r\n";
   print $fh "VERSION:2.0\r\n";
