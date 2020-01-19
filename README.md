@@ -1,6 +1,8 @@
 # abfuhrtemine-gvu-stp
 exportiere die abfuhrtermine des GVU St. Pölten als iCalendar datei
 
+fertige exporte gibts im verzeichnis `abfuhrtermine`.
+
 ## parameter
 
 ```
