@@ -21,7 +21,6 @@ use Time::localtime;
 
 binmode(STDOUT, ":utf8");
 
-#my $DEBUG = 1;
 my $DEBUG;
 
 
@@ -38,6 +37,7 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
             'gebiet:i' => \$opt_gebiet,
             'gemeinde:i' => \$opt_gemeinde,
             'jahr:i' => \$opt_jahr,
+            'debug' => \$DEBUG,
 );
 
 print "$opt_haushalt $opt_gebiet\n" if $DEBUG;
