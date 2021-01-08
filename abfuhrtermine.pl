@@ -50,7 +50,12 @@ my %verbandHost = (
   'lf' => 'lilienfeld',
 );
 
-
+my %entsorgungsgebiete = (
+  "lf" => {
+    "Lilienfeld, Marktl, Stangenthal" => 1,
+    "Schrambach" => 2,
+  },
+);
 
 for my $verbandLong ( sort keys %verbaende ) {
   my $verbandShort = $verbaende{$verbandLong};
@@ -141,6 +146,11 @@ sub printiCal {
     if ($abfuhrinfo =~ /Abfuhrgebiet (I*)/) {
       print "'$1'->" if $opt_debug;
       $eg = length($1);
+    }
+    my $entsorgungsgebietekeys = join ("|", keys(%{$entsorgungsgebiete{"$vbid"}}));
+    if ($abfuhrinfo =~ /($entsorgungsgebietekeys)/) {
+      print "'$1'->" if $opt_debug;
+      $eg = $entsorgungsgebiete{"$vbid"}{"$1"};
     }
     if (defined($eg)) {
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$eg/)) {
