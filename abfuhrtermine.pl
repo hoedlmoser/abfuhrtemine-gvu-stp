@@ -109,7 +109,7 @@ sub printiCal {
   my %abfuhr;
   my $maxeg = 0;
 
-  open(my $fhRaw, '>:encoding(UTF-8)', $iCalFile . '.out') if $opt_raw or die "could not open file '$iCalFile.out' $!";
+  open(my $fhRaw, '>:encoding(UTF-8)', $iCalFile . '.out') or die "could not open file '$iCalFile.out' $!" if $opt_raw;
 
   foreach my $p ($tree->look_down(_tag => "div", class => "tunterlegt"))
   {
