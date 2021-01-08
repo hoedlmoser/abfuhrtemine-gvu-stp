@@ -21,7 +21,7 @@ use Time::localtime;
 
 
 my $opt_jahr = strftime("%Y", gmtime);
-my ($opt_gemeinde, $opt_gemid, $opt_verbandid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_raw, $opt_debug);
+my ($opt_gemeinde, $opt_gemid, $opt_verbandid, $opt_haushalt, $opt_gebiet, $opt_liste, $opt_raw, $opt_text, $opt_debug);
 GetOptions ('haushalt:s' => \$opt_haushalt, 
             'gebiet:i' => \$opt_gebiet,
             'gemeinde:s' => \$opt_gemeinde,
@@ -30,6 +30,7 @@ GetOptions ('haushalt:s' => \$opt_haushalt,
             'jahr:i' => \$opt_jahr,
             'liste' => \$opt_liste,
             'raw' => \$opt_raw,
+            'text' => \$opt_text,
             'debug' => \$opt_debug,
 );
 print "$opt_jahr $opt_gemid $opt_gemeinde $opt_gebiet $opt_haushalt\n" if $opt_debug;
@@ -196,6 +197,7 @@ sub printiCal {
   print " -> $iCalFile.ics\n";
 
   open(my $fh, '>:encoding(UTF-8)', $iCalFile . '.ics') or die "could not open file '$iCalFile.ics' $!";
+  open(my $fhText, '>:encoding(UTF-8)', $iCalFile . '.txt') or die "could not open file '$iCalFile.txt' $!" if $opt_text;
     
   print $fh "BEGIN:VCALENDAR\r\n";
   print $fh "VERSION:2.0\r\n";
@@ -209,28 +211,34 @@ sub printiCal {
         print $fh "UID:" . md5_hex($gemid . $abfuhrdate . $abfuhrtype) . "\@abfuhrtermine.kmp.or.at\r\n";
         print $fh "DTSTAMP:$timestamp\r\n";
         print $fh "DTSTART;VALUE=DATE:$abfuhrdate\r\n";
+	print $fhText "$abfuhrdate " if $opt_text;
         print $fh "DTEND;VALUE=DATE:$hashabfuhr->{'end'}\r\n";
         print $fh "SUMMARY:$abfuhrtype";
+	print $fhText "$abfuhrtype" if $opt_text;
         if (defined($hashabfuhr->{'eg'}) && !defined($opt_gebiet)) {
           $hashabfuhr->{'eg'} = join '',sort split('',$hashabfuhr->{'eg'});
           if ($hashabfuhr->{'eg'} ne join '', (1 .. $maxeg)) {
             print $fh ' ' . join ' ', split('',$hashabfuhr->{'eg'});
+            print $fhText ' ' . join ' ', split('',$hashabfuhr->{'eg'}) if $opt_text;
           }
         }
         if (defined($hashabfuhr->{'ph'}) && !defined($opt_haushalt)) {
           $hashabfuhr->{'ph'} = join '',sort split('',$hashabfuhr->{'ph'});
           if ($hashabfuhr->{'ph'} ne "em") {
             print $fh " $hashabfuhr->{'ph'}";
+            print $fhText " $hashabfuhr->{'ph'}" if $opt_text;
           }
         }
         print $fh "\r\n";
         print $fh "STATUS:CONFIRMED\r\n";
         print $fh "END:VEVENT\r\n";
+	print $fhText "\n" if $opt_text;
       }
     }
   }
   print $fh "END:VCALENDAR\r\n";
 
   close $fh;
+  close $fhText if $opt_text;
 }
 
