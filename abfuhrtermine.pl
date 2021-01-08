@@ -42,10 +42,12 @@ my $umlautkeys = join ("|", keys(%umlaute));
 my %verbaende = (
   'St. Pölten Bezirk' => 'pl',
   'Tulln' => 'tu',
+  'Lilienfeld' => 'lf',
 );
 my %verbandHost = (
   'pl' => 'stpoeltenland',
   'tu' => 'tulln',
+  'lf' => 'lilienfeld',
 );
 
 
