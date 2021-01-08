@@ -77,7 +77,7 @@ sub getGemeinde {
     my $gemid = $p->attr('value');
 
     next if $gemeinde =~ /alle Gemeinden/;
-    print "$gemeinde $gemid\n" if $opt_debug;
+    #print "$gemeinde $gemid\n" if $opt_debug;
     $gemeinde =~ s/($umlautkeys)/$umlaute{$1}/g;  
     print "$gemeinde $gemid\n" if $opt_debug;
 
@@ -99,7 +99,7 @@ sub printiCal {
 
   $gemeinde =~ tr/ \./-/d;  
   my $iCalFile = "abfuhrtermine_${gemeinde}_${gemid}_${jahr}";
-  print "$iCalFile\n" if $opt_debug;
+  print "\n$iCalFile\n" if $opt_debug;
 
   my $timestamp = strftime("%Y%m%dT%H%M%SZ", gmtime);
 
