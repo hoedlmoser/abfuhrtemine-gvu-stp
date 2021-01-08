@@ -117,9 +117,12 @@ sub printiCal {
   {
     my ($abfuhrdate, $abfuhrtype);
     my $abfuhrinfo = $p->as_text;
+
     print "$abfuhrinfo\n" if $opt_debug;
     print $fhRaw "$abfuhrinfo\n" if $opt_raw;
+
     next if $abfuhrinfo =~ m/Wohnhausanlagen/;
+
     if ($abfuhrinfo =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
       $abfuhrdate = "$3$2$1";
       my $abfuhrtimeend = timelocal(0, 0, 0, $1, $2 - 1, $3) + 24 * 60 * 60;
@@ -129,32 +132,37 @@ sub printiCal {
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"st"} = 1;
       $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"end"} = $abfuhrdateend;
     }
+
+    my $eg = undef;
     if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte) (\d)/) {
-      my $eg = $2;
-      print "$eg-" if $opt_debug;
+      print "'$2'->" if $opt_debug;
+      $eg = $2;
+    }
+    if ($abfuhrinfo =~ /Abfuhrgebiet (I*)/) {
+      print "'$1'->" if $opt_debug;
+      $eg = length($1);
+    }
+    if (defined($eg)) {
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$eg/)) {
         $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$eg";
       }
       $maxeg = $eg if ($eg > $maxeg);
       print "$eg " if $opt_debug;
+      undef $eg;
     }
-    if ($abfuhrinfo =~ /Abfuhrgebiet (I*)/) {
-      print "$1-" if $opt_debug;
-      my $ag = length($1);
-      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$ag/)) {
-        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} .= "$ag";
-      }
-      $maxeg = $ag if ($ag > $maxeg);
-      print "$ag " if $opt_debug;
-    }
+
+    my $ph = undef;
     if ($abfuhrinfo =~ /(Mehr|Ein)personenhaushalt/) {
-      print "$1-" if $opt_debug;
-      my $abfuhrhaushalt = lc substr $1, 0, 1;
-      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$abfuhrhaushalt/)) {
-        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} .= $abfuhrhaushalt;
-      }
-      print "$abfuhrhaushalt " if $opt_debug;
+      print "'$1'->" if $opt_debug;
+      $ph = lc substr $1, 0, 1;
     }
+    if (defined($ph)) {
+      if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$ph/)) {
+        $abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} .= $ph;
+      }
+      print "$ph " if $opt_debug;
+    }
+
     print "\n" if $opt_debug;
   }
 
