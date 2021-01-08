@@ -57,6 +57,14 @@ my %entsorgungsgebiete = (
   },
 );
 
+my %entsorgungsfrequenz = (
+  "lf" => {
+    "Restmüll alle 2 Wochen" => 'm',
+    "Restmüll alle 4 Wochen" => 'e',
+  },
+);
+
+
 for my $verbandLong ( sort keys %verbaende ) {
   my $verbandShort = $verbaende{$verbandLong};
   print "$verbandLong, $verbandShort\n" if $opt_debug;
@@ -165,6 +173,11 @@ sub printiCal {
     if ($abfuhrinfo =~ /(Mehr|Ein)personenhaushalt/) {
       print "'$1'->" if $opt_debug;
       $ph = lc substr $1, 0, 1;
+    }
+    my $entsorgungsfrequenzkeys = join ("|", keys(%{$entsorgungsfrequenz{"$vbid"}}));
+    if ($abfuhrinfo =~ /($entsorgungsfrequenzkeys)/) {
+      print "'$1'->" if $opt_debug;
+      $ph = $entsorgungsfrequenz{"$vbid"}{"$1"};
     }
     if (defined($ph)) {
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$ph/)) {
