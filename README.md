@@ -4,6 +4,7 @@ exportiere die abfuhrtermine der NÖ Umweltverbände als iCalendar datei.
 derzeit sind unterstützt:
 - GVU St. Pölten Bezirk
 - GVA Tulln
+- GVA Lilienfeld
 
 fertige exporte gibts im verzeichnis `abfuhrtermine`.
 
@@ -20,6 +21,8 @@ fertige exporte gibts im verzeichnis `abfuhrtermine`.
                                 m ... mehrpersonenhaushalt
   --gebiet <1|2>             ... ein bestimmtes sammelgebiet 
   --jahr <jjjj>              standard aktuelles jahr
+  --raw                      exportiere zusätzlich die rohdaten
+  --text                     exportiere zusätzlich als text
   --debug                    zeige entwicklerinformationen
 ```
 
