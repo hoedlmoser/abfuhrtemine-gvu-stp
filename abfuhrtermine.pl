@@ -64,6 +64,11 @@ my %entsorgungsgebiete = (
     "Türnitz" => 1,
     "Lehenrotte, Freiland" => 2,
   },
+  "tu" => {
+  #  "Dschungeldorf" => 5,
+    "Haushalte Zeiselmauer" => 1,
+    "Haushalte Wolfpassing" => 2,
+  },
 );
 
 my %entsorgungsfrequenz = (
@@ -143,7 +148,7 @@ sub printiCal {
     print "$abfuhrinfo\n" if $opt_debug;
     print $fhRaw "$abfuhrinfo\n" if $opt_raw;
 
-    next if $abfuhrinfo =~ m/Wohnhausanlagen/;
+    next if $abfuhrinfo =~ m/(Wohnhausanlagen|Windeltonne|Dschungeldorf)/;
 
     if ($abfuhrinfo =~ /(\d{2})\.(\d{2})\.(\d{4}).*? ([\w ]*?)\s*$/) {
       $abfuhrdate = "$3$2$1";
@@ -156,7 +161,7 @@ sub printiCal {
     }
 
     my $eg = undef;
-    if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte|Restmüll) (\d)/) {
+    if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte|Restmüll|Sprengel) (\d)/) {
       print "'$2'->" if $opt_debug;
       $eg = $2;
     }
