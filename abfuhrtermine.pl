@@ -164,10 +164,12 @@ sub printiCal {
       print "'$1'->" if $opt_debug;
       $eg = length($1);
     }
-    my $entsorgungsgebietekeys = join ("|", map(quotemeta,keys(%{$entsorgungsgebiete{"$vbid"}})));
-    if ($abfuhrinfo =~ /($entsorgungsgebietekeys)/) {
-      print "'$1'->" if $opt_debug;
-      $eg = $entsorgungsgebiete{"$vbid"}{"$1"};
+    if (defined($entsorgungsgebiete{"$vbid"})) {
+      my $entsorgungsgebietekeys = join ("|", map(quotemeta,keys(%{$entsorgungsgebiete{"$vbid"}})));
+      if ($abfuhrinfo =~ /($entsorgungsgebietekeys)/) {
+        print "'$1'->" if $opt_debug;
+        $eg = $entsorgungsgebiete{"$vbid"}{"$1"};
+      }
     }
     if (defined($eg)) {
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"eg"} !~ m/$eg/)) {
@@ -183,10 +185,12 @@ sub printiCal {
       print "'$1'->" if $opt_debug;
       $ph = lc substr $1, 0, 1;
     }
-    my $entsorgungsfrequenzkeys = join ("|", keys(%{$entsorgungsfrequenz{"$vbid"}}));
-    if ($abfuhrinfo =~ /($entsorgungsfrequenzkeys)/) {
-      print "'$1'->" if $opt_debug;
-      $ph = $entsorgungsfrequenz{"$vbid"}{"$1"};
+    if (defined($entsorgungsfrequenz{"$vbid"})) {
+      my $entsorgungsfrequenzkeys = join ("|", keys(%{$entsorgungsfrequenz{"$vbid"}}));
+      if ($abfuhrinfo =~ /($entsorgungsfrequenzkeys)/) {
+        print "'$1'->" if $opt_debug;
+        $ph = $entsorgungsfrequenz{"$vbid"}{"$1"};
+      }
     }
     if (defined($ph)) {
       if (!defined($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"}) || ($abfuhr{"$abfuhrdate"}{"$abfuhrtype"}{"ph"} !~ m/$ph/)) {
