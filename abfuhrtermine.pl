@@ -55,6 +55,14 @@ my %entsorgungsgebiete = (
   "lf" => {
     "Lilienfeld, Marktl, Stangenthal" => 1,
     "Schrambach" => 2,
+    "Abholtag Dienstag" => 1,
+    "Abholtag Mittwoch" => 2,
+    "St. Aegyd und Kernhof (nicht Container)" => 1,
+    "Groß-Container St. Aegyd u. Säcke ab Gscheid bis Fadental u. Neuwald" => 2,
+    "Traismauer, Wagram, Waldlesberg, Oberndorf, Stollhofen" => 1,
+    "Frauendorf, Hilpersdorf, Gemeinlebarn" => 2,
+    "Türnitz" => 1,
+    "Lehenrotte, Freiland" => 2,
   },
 );
 
@@ -148,7 +156,7 @@ sub printiCal {
     }
 
     my $eg = undef;
-    if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte) (\d)/) {
+    if ($abfuhrinfo =~ /(Entsorgungsgebiet|Haushalte|Restmüll) (\d)/) {
       print "'$2'->" if $opt_debug;
       $eg = $2;
     }
@@ -156,7 +164,7 @@ sub printiCal {
       print "'$1'->" if $opt_debug;
       $eg = length($1);
     }
-    my $entsorgungsgebietekeys = join ("|", keys(%{$entsorgungsgebiete{"$vbid"}}));
+    my $entsorgungsgebietekeys = join ("|", map(quotemeta,keys(%{$entsorgungsgebiete{"$vbid"}})));
     if ($abfuhrinfo =~ /($entsorgungsgebietekeys)/) {
       print "'$1'->" if $opt_debug;
       $eg = $entsorgungsgebiete{"$vbid"}{"$1"};
