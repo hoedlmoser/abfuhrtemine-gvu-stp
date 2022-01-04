@@ -2,7 +2,7 @@
 #
 # abfuhrtermine-gvu-stp - fetch abfuhrtermine from GVU St. Pölten and provide as iCalendar.
 #
-# Klaus Maria Pfeiffer 2016 - 2020
+# Klaus Maria Pfeiffer 2016 - 2022
 # https://github.com/hoedlmoser/abfuhrtemine-gvu-stp
 #
 
