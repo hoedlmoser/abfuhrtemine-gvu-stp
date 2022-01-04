@@ -1,5 +1,5 @@
 # abfuhrtemine-gvu-stp
-exportiere die abfuhrtermine der NÖ Umweltverbände als iCalendar datei.
+exportiere die abfuhrtermine der NÖ Umweltverbände als iCalendar ics datei.
 
 derzeit sind unterstützt:
 - GVU St. Pölten Bezirk
