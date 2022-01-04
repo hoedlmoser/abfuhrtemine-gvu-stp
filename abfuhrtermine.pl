@@ -249,7 +249,12 @@ sub printiCal {
         print $fh "\r\n";
         print $fh "STATUS:CONFIRMED\r\n";
         print $fh "TRANSP:TRANSPARENT\r\n";
-        print $fh "END:VEVENT\r\n";
+        print $fh "BEGIN:VALARM\r\n";
+        print $fh "TRIGGER:-PT8H\r\n";
+        print $fh "ACTION:DISPLAY\r\n";
+        print $fh "DESCRIPTION:Morgen ist $abfuhrtype-Abholung\r\n";
+        print $fh "END:VALARM\r\n";
+	print $fh "END:VEVENT\r\n";
 	print $fhText "\n" if $opt_text;
       }
     }
